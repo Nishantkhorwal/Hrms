@@ -36,6 +36,9 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 200,
 };
+// JSON/body parser must come AFTER multer routes
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Apply CORS middleware globally
 app.use(cors(corsOptions));
@@ -47,15 +50,15 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
 
-// JSON/body parser must come AFTER multer routes
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-app.use(cookieParser());
+
+
 
 // Routes
 app.use("/api/attendance", attendanceRoutes);
 app.use('/api/auth', authRoutes);
+
+app.use(cookieParser());
 
 
 
