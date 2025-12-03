@@ -35,7 +35,36 @@ const PendingOutTime = () => {
     fetchPending();
   }, []);
   
+const compressImage = (file, maxWidth = 800, quality = 0.6) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
 
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = maxWidth / img.width;
+
+        canvas.width = maxWidth;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            resolve(blob);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+    };
+  });
+};
   // ✅ Handle photo input (camera or upload)
   const handlePhotoChange = (e, id) => {
     const file = e.target.files[0];
@@ -48,35 +77,70 @@ const PendingOutTime = () => {
   };
 
   // ✅ Handle Mark Out Time
+  // const handleMarkOut = async (id) => {
+  //   const fileInput = document.getElementById(`outPhoto-${id}`);
+  //   const file = fileInput?.files[0];
+  //   if (!file) return alert("Please capture or select a photo first.");
+
+  //   const formData = new FormData();
+  //   formData.append("outPhoto", file);
+
+  //   try {
+  //     setUploadingId(id);
+  //     const res = await fetch(`${API_BASE_URL}/api/attendance/out/${id}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: formData,
+  //     });
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message || "Failed to mark out time");
+
+  //     alert("✅ Out time marked successfully!");
+  //     setPendingList((prev) => prev.filter((a) => a._id !== id)); // Remove from list
+  //   } catch (err) {
+  //     alert(err.message);
+  //   } finally {
+  //     setUploadingId(null);
+  //   }
+  // };
   const handleMarkOut = async (id) => {
-    const fileInput = document.getElementById(`outPhoto-${id}`);
-    const file = fileInput?.files[0];
-    if (!file) return alert("Please capture or select a photo first.");
+  const fileInput = document.getElementById(`outPhoto-${id}`);
+  const file = fileInput?.files[0];
+  if (!file) return alert("Please capture or select a photo first.");
+
+  try {
+    setUploadingId(id);
+
+    // ✅ COMPRESS THE IMAGE HERE
+    const compressedFile = await compressImage(file, 800, 0.6);
 
     const formData = new FormData();
-    formData.append("outPhoto", file);
+    formData.append("outPhoto", compressedFile, `${id}-out.jpeg`); // filename added
 
-    try {
-      setUploadingId(id);
-      const res = await fetch(`${API_BASE_URL}/api/attendance/out/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+    const res = await fetch(`${API_BASE_URL}/api/attendance/out/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to mark out time");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to mark out time");
 
-      alert("✅ Out time marked successfully!");
-      setPendingList((prev) => prev.filter((a) => a._id !== id)); // Remove from list
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setUploadingId(null);
-    }
-  };
+    alert("✅ Out time marked successfully!");
+    setPendingList((prev) => prev.filter((a) => a._id !== id)); // Remove from list
+
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setUploadingId(null);
+  }
+};
+
 
   if (loading)
     return (

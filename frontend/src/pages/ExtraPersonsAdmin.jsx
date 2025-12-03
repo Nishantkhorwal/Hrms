@@ -84,7 +84,6 @@ export default function ExtraPersonsAdmin() {
       const res = await fetch(`${API_BASE_URL}/api/attendance/extra/${attendanceId}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: action }),
