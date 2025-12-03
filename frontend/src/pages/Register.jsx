@@ -180,6 +180,7 @@ export default function RegisterUserPage() {
                 <option value="Sukoon">Sukoon</option>
                 <option value="I-City">I-City</option>
                 <option value="Ambliss">Ambliss</option>
+                <option value="Ananda">Ananda</option>
                 <option value="Dlf Phase-1">Dlf Phase-1</option>
                 <option value="Wazirpur">Wazirpur</option>
                 <option value="Hayatpur">Hayatpur</option>

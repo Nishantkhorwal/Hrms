@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const siteSettingsSchema = new mongoose.Schema({
   siteName: {
     type: String,
-    enum: ["Insignia Park-1", "Insignia Park-2", "Pravasa", "Sukoon", "I-City", "Ambliss","Dlf Phase-1", "Wazirpur", "Hayatpur", "Head Office"],
+    enum: ["Insignia Park-1", "Insignia Park-2", "Pravasa", "Sukoon", "I-City","Ananda", "Ambliss","Dlf Phase-1", "Wazirpur", "Hayatpur", "Head Office"],
     required: true,
     unique: true
   },

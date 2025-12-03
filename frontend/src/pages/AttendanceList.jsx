@@ -506,7 +506,7 @@ const vendors_list = [
 
 const sites_list = [
   "Insignia Park-1", "Insignia Park-2", "Pravasa", "Sukoon",
-  "I-City", "Ambliss", "Dlf Phase-1", "Wazirpur",
+  "I-City", "Ambliss","Ananda", "Dlf Phase-1", "Wazirpur",
   "Hayatpur", "Head Office"
 ];
 

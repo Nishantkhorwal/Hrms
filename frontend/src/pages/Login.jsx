@@ -125,6 +125,7 @@ export default function LoginPage() {
       <option value="Pravasa">Pravasa</option>
       <option value="Sukoon">Sukoon</option>
       <option value="I-City">I-City</option>
+      <option value="Ananda">Ananda</option>
       <option value="Ambliss">Ambliss</option>
       <option value="Dlf Phase-1">Dlf Phase-1</option>
       <option value="Wazirpur">Wazirpur</option>

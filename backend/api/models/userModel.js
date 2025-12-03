@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   site: {
   type: String,
-  enum: ["Insignia Park-1", "Insignia Park-2", "Pravasa", "Sukoon", "I-City", "Ambliss","Dlf Phase-1", "Wazirpur", "Hayatpur", "Head Office"],
+  enum: ["Insignia Park-1", "Insignia Park-2", "Pravasa", "Sukoon", "I-City", "Ambliss","Ananda","Dlf Phase-1", "Wazirpur", "Hayatpur", "Head Office"],
   required: function () {
     return this.role === 'User';   // ✅ site required ONLY for Normal Users
   }
