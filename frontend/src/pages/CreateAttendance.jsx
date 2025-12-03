@@ -115,7 +115,6 @@ const CreateAttendance = () => {
           Authorization: `Bearer ${token}` 
         },
         body: fd,
-        credentials: true
       });
 
       const data = await res.json();
