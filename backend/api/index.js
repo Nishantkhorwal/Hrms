@@ -45,6 +45,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ⚠️ ATTENDANCE ROUTES MUST COME BEFORE express.json()
 app.use("/api/attendance", attendanceRoutes);
+app.use('/api/auth', authRoutes);
 
 // JSON/body parser must come AFTER multer routes
 app.use(express.json({ limit: '50mb' }));
@@ -53,12 +54,11 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use("/api/attendance", attendanceRoutes);
+
 
 
 // Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}!`);
 });
