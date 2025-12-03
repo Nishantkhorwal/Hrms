@@ -468,6 +468,7 @@ const CreateExtraAttendance = () => {
             <input
               type="file"
               accept="image/*"
+              capture="environment"
               onChange={handleFileChange}
               className="mt-1 w-full border px-3 py-2 rounded-lg"
             />
