@@ -305,15 +305,52 @@ const CreateExtraAttendance = () => {
 
     setMessage({});
   };
+  const compressImage = (file, maxWidth = 800, quality = 0.6) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFormData({ ...formData, inPhoto: file });
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
 
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-    }
-  };
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = maxWidth / img.width;
+
+        canvas.width = maxWidth;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(
+          (blob) => {
+            resolve(blob);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+    };
+  });
+};
+
+  const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Compress image before uploading
+  const compressedBlob = await compressImage(file);
+
+  // Convert blob -> file for FormData
+  const compressedFile = new File([compressedBlob], file.name, {
+    type: "image/jpeg",
+  });
+
+  setFormData({ ...formData, inPhoto: compressedFile });
+  setPreview(URL.createObjectURL(compressedFile));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
