@@ -346,7 +346,10 @@ const CreateExtraAttendance = () => {
 
       const res = await fetch(`${API_BASE_URL}/api/attendance/create`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
         body: fd,
       });
 
