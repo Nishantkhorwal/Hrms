@@ -24,7 +24,8 @@ const server = createServer(app);
 
 // CORS Configuration (Must be on Top)
 const allowedOrigins = [
-   "http://localhost:5173"
+   "http://localhost:5173",
+   "https://hrmsf.hombrix.com"
 ];
 
 const corsOptions = {
