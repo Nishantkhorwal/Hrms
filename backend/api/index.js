@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { createServer } from 'http';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 
 import authRoutes from './routes/authRoutes.js';
@@ -18,7 +19,8 @@ mongoose
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.log(err));
 
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 
@@ -29,24 +31,27 @@ const allowedOrigins = [
    "https://rofgroup.co.in"
 ];
 
-const corsOptions = {
+app.use(cors({
   origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 200,
-};
+}));
 // JSON/body parser must come AFTER multer routes
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 
 // Apply CORS middleware globally
-app.use(cors(corsOptions));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
 
 // Static uploads
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
 
 // ⚠️ ATTENDANCE ROUTES MUST COME BEFORE express.json()
+
+
 
 
 
@@ -57,8 +62,6 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Routes
 app.use("/api/attendance", attendanceRoutes);
 app.use('/api/auth', authRoutes);
-
-app.use(cookieParser());
 
 
 
