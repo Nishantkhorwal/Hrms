@@ -74,7 +74,7 @@ const CreateAttendance = () => {
     }
     setMessage({});
   };
-  const compressImage = (file, maxWidth = 800, quality = 0.6) => {
+  const compressImage = (file, maxWidth = 600, targetSize = 100 * 1024) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -93,17 +93,32 @@ const CreateAttendance = () => {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        canvas.toBlob(
-          (blob) => {
-            resolve(blob);
-          },
-          "image/jpeg",
-          quality
-        );
+        let quality = 0.7; // Starting quality
+        let blob;
+
+        const compressLoop = () => {
+          canvas.toBlob(
+            (b) => {
+              blob = b;
+
+              if (blob.size > targetSize && quality > 0.2) {
+                quality -= 0.1; // Reduce quality step-by-step
+                compressLoop();
+              } else {
+                resolve(blob);
+              }
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+
+        compressLoop();
       };
     };
   });
 };
+
 
 
   const handleFileChange = async (e) => {
