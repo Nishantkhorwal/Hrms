@@ -109,6 +109,12 @@ const CreateAttendance = () => {
   const handleFileChange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  const isImage = file.type.startsWith("image/") || file.name.match(/\.(jpg|jpeg|png|heic|heif)$/i);
+
+  if (!isImage) {
+    alert("Invalid image captured. Please retake the photo.");
+    return;
+  }
 
   // Compress image before uploading
   const compressedBlob = await compressImage(file);
@@ -283,7 +289,7 @@ const CreateAttendance = () => {
             <input
               type="file"
               accept="image/*"
-              capture="environment"
+              capture="camera"
               onChange={handleFileChange}
               className="mt-1 w-full border px-3 py-2 rounded-lg"
             />

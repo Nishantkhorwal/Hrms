@@ -13,10 +13,8 @@ export const createAttendance = async (req, res) => {
     const inPhoto = req.file ? `/uploads/${req.file.filename}` : null;
 
     // VALIDATION (updated)
-    if (!name || !vendor || !department || !mainCategory || !inPhoto) {
-      return res.status(400).json({
-        message: "Name, vendor, main category, department and photo are required."
-      });
+    if (!req.file) {
+      return res.status(400).json({ message: "Image is missing" });
     }
 
     // Current time

@@ -8,7 +8,20 @@ const router = express.Router();
 // @route   POST /api/attendance
 // @desc    Create attendance record
 // @access  Public (or protect with middleware later)
-router.post("/create", authenticateUser, upload.single("inPhoto"), createAttendance);
+router.post(
+  "/create",
+  authenticateUser,
+  (req, res, next) => {
+    upload.single("inPhoto")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: "Upload failed", error: err.message });
+      }
+      next();
+    });
+  },
+  createAttendance
+);
+
 router.get("/get",authenticateUser, getAllAttendance);
 router.put("/out/:attendanceId", authenticateUser, upload.single("outPhoto"), updateOutTime);
 router.get("/today-pending", authenticateUser, getTodayAttendanceWithoutOutTime);

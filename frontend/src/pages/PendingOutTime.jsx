@@ -191,7 +191,7 @@ const compressImage = (file, maxWidth = 800, quality = 0.6) => {
                 type="file"
                 id={`outPhoto-${record._id}`}
                 accept="image/*"
-                capture="environment"
+                capture="camera"
                 className="hidden"
                 onChange={(e) => handlePhotoChange(e, record._id)}
               />
