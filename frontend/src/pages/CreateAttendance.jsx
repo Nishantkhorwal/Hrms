@@ -144,65 +144,105 @@ const CreateAttendance = () => {
 };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage({});
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage({});
 
-    try {
-      const token = localStorage.getItem("token");
+  try {
+    const token = localStorage.getItem("token");
 
-      if (!token) {
-        setMessage({ type: "error", text: "Please log in first." });
-        setLoading(false);
-        return;
-      }
-
-      if (!formData.inPhoto) {
-        setMessage({ type: "error", text: "Please upload a photo." });
-        setLoading(false);
-        return;
-      }
-
-      const fd = new FormData();
-      fd.append("name", formData.name);
-      fd.append("vendor", formData.vendor);
-      fd.append("mainCategory", formData.mainCategory);
-      fd.append("department", formData.department);
-      fd.append("inPhoto", formData.inPhoto);
-
-      const res = await fetch(`${API_BASE_URL}/api/attendance/create`, {
-        method: "POST",
-        headers: { 
-          Authorization: `Bearer ${token}` 
-        },
-        body: fd,
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage({ type: "success", text: data.message });
-
-        // Reset form
-        setFormData({
-          name: "",
-          vendor: "",
-          mainCategory: "",
-          department: "",
-          inPhoto: null,
-        });
-
-        setPreview(null);
-      } else {
-        setMessage({ type: "error", text: data.message });
-      }
-    } catch (error) {
-      setMessage({ type: "error", text: "Network error. Try again." });
-    } finally {
+    if (!token) {
+      setMessage({ type: "error", text: "Please log in first." });
       setLoading(false);
+      return;
     }
-  };
+
+    if (!formData.inPhoto) {
+      setMessage({ type: "error", text: "Please capture a photo to continue." });
+      setLoading(false);
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("name", formData.name);
+    fd.append("vendor", formData.vendor);
+    fd.append("mainCategory", formData.mainCategory);
+    fd.append("department", formData.department);
+    fd.append("inPhoto", formData.inPhoto);
+
+    const res = await fetch(`${API_BASE_URL}/api/attendance/create`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: fd,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      // In case backend throws HTML or non-JSON
+      data = { message: "Unexpected server response." };
+    }
+
+    // 👉 PRECISE ERROR MESSAGES BASED ON BACKEND
+    if (!res.ok) {
+      let errorText = "Something went wrong. Try again.";
+
+      if (data.message?.includes("file too large")) {
+        errorText = "Image too large, please retake a closer photo.";
+      }
+
+      else if (data.message?.includes("invalid image")) {
+        errorText = "Invalid or corrupted image. Please retake the photo.";
+      }
+
+      else if (data.message?.includes("mimetype")) {
+        errorText = "Photo format not supported. Please take a clear JPEG/PNG photo.";
+      }
+
+      else if (data.message?.includes("Missing fields")) {
+        errorText = "All fields are required. Please fill the entire form.";
+      }
+
+      else if (data.message?.includes("duplicate")) {
+        errorText = "Attendance already marked for today.";
+      }
+
+      else if (res.status === 401) {
+        errorText = "Session expired. Please log in again.";
+      }
+
+      else if (res.status === 500) {
+        errorText = "Server error. Please try again in a moment.";
+      }
+
+      setMessage({ type: "error", text: errorText });
+      return; // stop here
+    }
+
+    // SUCCESS
+    setMessage({ type: "success", text: data.message });
+
+    setFormData({
+      name: "",
+      vendor: "",
+      mainCategory: "",
+      department: "",
+      inPhoto: null,
+    });
+
+    setPreview(null);
+
+  } catch (error) {
+    setMessage({ type: "error", text: "Network error. Check your internet and try again." });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const filteredDepartments =
     formData.mainCategory ? departmentGroups[formData.mainCategory] : [];
