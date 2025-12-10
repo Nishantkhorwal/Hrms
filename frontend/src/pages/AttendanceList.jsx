@@ -597,22 +597,17 @@ export default function AttendanceDashboard() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const presentTodayCount =
-        data.data?.filter((a) => {
-          const inDate = new Date(a.inTime);
-          inDate.setHours(0, 0, 0, 0);
-          return inDate.getTime() === today.getTime();
-        }).length || 0;
+      const presentToday = data.presentToday || 0;
 
       const totalCount = data.data?.length || 0;
 
       setMetrics({
-        totalPresent: presentTodayCount,
-        totalAbsent: totalCount - presentTodayCount,
-        presentToday: presentTodayCount,
+        totalPresent: totalCount,
+        totalAbsent: totalCount - presentToday,
+        presentToday: presentToday,
         avgAttendance:
           totalCount > 0
-            ? Math.round((presentTodayCount / totalCount) * 100)
+            ? Math.round((presentToday / totalCount) * 100)
             : 0
       });
 
