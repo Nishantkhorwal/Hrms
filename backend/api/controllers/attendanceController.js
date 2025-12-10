@@ -211,12 +211,26 @@ export const getAllAttendance = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
+      
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const todayQuery = {
+        ...query,
+        inTime: { $gte: todayStart, $lte: todayEnd }
+      };
+
+      const presentToday = await HrmsAttendance.countDocuments(todayQuery);
 
     return res.status(200).json({
       message: "Attendance records fetched successfully",
       page: Number(page),
       limit: Number(limit),
       totalRecords,
+      presentToday,
       totalPages: Math.ceil(totalRecords / limit),
       data: records,
     });
