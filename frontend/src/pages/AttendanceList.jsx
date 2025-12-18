@@ -557,6 +557,18 @@ export default function AttendanceDashboard() {
 
 
 
+
+  /* ---------- Category Summary Report ---------- */
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categoryReport, setCategoryReport] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+
+
+
+
+
+
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   /* -----------------------------------------
@@ -714,51 +726,88 @@ export default function AttendanceDashboard() {
     }
   };
   const fetchPersonMonthly = async (employee) => {
-  setPersonLoading(true);
+    setPersonLoading(true);
 
-  // employee will be a full object from your attendance table row
-  // e.g., { name, department, vendor, siteName }
-  const { name, department, vendor, siteName } = employee;
+    // employee will be a full object from your attendance table row
+    // e.g., { name, department, vendor, siteName }
+    const { name, department, vendor, siteName } = employee;
 
-  setSelectedPerson(name);
+    setSelectedPerson(name);
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/attendance/person?name=${encodeURIComponent(
+          name
+        )}&department=${encodeURIComponent(
+          department
+        )}&vendor=${encodeURIComponent(
+          vendor
+        )}&siteName=${encodeURIComponent(
+          siteName
+        )}&month=${selectedMonth}&year=${selectedYear}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to fetch monthly attendance");
+        return;
+      }
+
+      setPersonAttendance(data.records || []);
+      setPersonModalOpen(true);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching record");
+    } finally {
+      setPersonLoading(false);
+    }
+  };
+
+  const fetchCategorySummary = async () => {
+  if (!selectedMonth || !selectedYear) {
+    alert("Please select month and year first");
+    return;
+  }
+
+  setCategoryLoading(true);
 
   const token = localStorage.getItem("token");
 
   try {
     const res = await fetch(
-      `${API_BASE_URL}/api/attendance/person?name=${encodeURIComponent(
-        name
-      )}&department=${encodeURIComponent(
-        department
-      )}&vendor=${encodeURIComponent(
-        vendor
-      )}&siteName=${encodeURIComponent(
-        siteName
-      )}&month=${selectedMonth}&year=${selectedYear}`,
+      `${API_BASE_URL}/api/attendance/getReport?month=${selectedMonth}&year=${selectedYear}`,
       {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       }
     );
 
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Failed to fetch monthly attendance");
+      alert(data.message || "Failed to fetch category report");
       return;
     }
 
-    setPersonAttendance(data.records || []);
-    setPersonModalOpen(true);
+    setCategoryReport(data.data || []);
+    setCategoryModalOpen(true);
 
   } catch (err) {
     console.error(err);
-    alert("Error fetching record");
+    alert("Error fetching category summary");
   } finally {
-    setPersonLoading(false);
+    setCategoryLoading(false);
   }
 };
+
 
 
 
@@ -768,7 +817,7 @@ export default function AttendanceDashboard() {
     <div className="p-6 space-y-6">
 
       {/* ---------------- METRICS ---------------- */}
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
         <button
           onClick={() => setReportModalOpen(true)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md"
@@ -843,18 +892,24 @@ export default function AttendanceDashboard() {
               ))}
             </select>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setReportModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="px-2 text-sm py-2 bg-gray-200 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 onClick={fetchMonthlyReport}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                className="px-2 text-sm py-2 bg-blue-600 text-white rounded-lg"
               >
-                Generate
+                Monthly Report
+              </button>
+               <button
+                onClick={fetchCategorySummary}
+                className="px-2 text-sm py-2 bg-gray-900 text-white rounded-lg"
+              >
+                Category Summary
               </button>
             </div>
           </div>
@@ -872,6 +927,78 @@ export default function AttendanceDashboard() {
           isLoading={personLoading}
         />
       )}
+
+
+      {categoryModalOpen && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="bg-white w-full max-w-4xl p-8 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">
+          📊 Category Summary – {selectedMonth}/{selectedYear}
+        </h2>
+        <button
+          onClick={() => setCategoryModalOpen(false)}
+          className="text-gray-500 hover:text-black"
+        >
+          ✕
+        </button>
+      </div>
+
+      {categoryLoading ? (
+        <p className="text-center py-10">Loading report...</p>
+      ) : (
+        <div className="space-y-6">
+
+          {categoryReport.map((cat, idx) => (
+            <div key={idx} className="border rounded-xl overflow-hidden">
+
+              {/* Category Header */}
+              <div className="bg-gray-900 text-white px-6 py-3 flex justify-between">
+                <span className="font-semibold">{cat.mainCategory}</span>
+                <span>Total: {cat.total}</span>
+              </div>
+
+              {/* Department Table */}
+              <table className="w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 border">Department</th>
+                    <th className="p-3 border text-right">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cat.departments.map((dep, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="p-3">{dep.department}</td>
+                      <td className="p-3 text-right font-semibold">
+                        {dep.count}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+          ))}
+
+        </div>
+      )}
+
+      <div className="text-center mt-8">
+        <button
+          onClick={() => setCategoryModalOpen(false)}
+          className="px-6 py-3 bg-gray-900 text-white rounded-xl"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+
 
 
       {/* ---------------- REPORT VIEW MODAL ---------------- */}

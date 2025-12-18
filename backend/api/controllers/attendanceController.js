@@ -775,6 +775,100 @@ export const getPersonMonthlyAttendance = async (req, res) => {
   }
 };
 
+export const getMonthlyCategoryDepartmentReport = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // 🔐 Only Admin / SuperAdmin
+    if (!["Admin", "SuperAdmin"].includes(user.role)) {
+      return res.status(403).json({
+        message: "Access denied"
+      });
+    }
+
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({
+        message: "Month and year are required"
+      });
+    }
+
+    // 📅 Month date range (UTC safe)
+    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
+
+    // 🔍 Base match (ALL SITES INCLUDED)
+    const matchStage = {
+      inTime: { $gte: startDate, $lte: endDate },
+
+      // include normal + approved extra manpower only
+      $or: [
+        { extraManpower: { $ne: true } },
+        { extraManpower: true, extraStatus: "approved" }
+      ]
+    };
+
+    // 🧠 Aggregation
+    const report = await HrmsAttendance.aggregate([
+      { $match: matchStage },
+
+      // 1️⃣ Group by Main Category + Department
+      {
+        $group: {
+          _id: {
+            mainCategory: "$mainCategory",
+            department: "$department"
+          },
+          count: { $sum: 1 }
+        }
+      },
+
+      // 2️⃣ Group by Main Category
+      {
+        $group: {
+          _id: "$_id.mainCategory",
+          total: { $sum: "$count" },
+          departments: {
+            $push: {
+              department: "$_id.department",
+              count: "$count"
+            }
+          }
+        }
+      },
+
+      // 3️⃣ Shape final response
+      {
+        $project: {
+          _id: 0,
+          mainCategory: "$_id",
+          total: "$total",
+          departments: 1
+        }
+      },
+
+      // 4️⃣ Sort by total count (DESC)
+      { $sort: { total: -1 } }
+    ]);
+
+    res.status(200).json({
+      message: "Monthly category-wise department report generated (all sites)",
+      month: `${startDate.toLocaleString("default", { month: "long" })} ${year}`,
+      totalCategories: report.length,
+      data: report
+    });
+
+  } catch (error) {
+    console.error("Monthly category report error:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+
 
 
 

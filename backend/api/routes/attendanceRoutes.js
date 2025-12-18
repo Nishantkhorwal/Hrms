@@ -1,5 +1,5 @@
 import express from "express";
-import { createAttendance, getAllAttendance, getMonthlyAttendanceReport, getMonthlyAttendanceReportExcel, getMonthlyExtraPersons, getPersonMonthlyAttendance, getTodayAttendanceWithoutOutTime, updateExtraPersonStatus, updateOutTime } from "../controllers/attendanceController.js";
+import { createAttendance, getAllAttendance, getMonthlyAttendanceReport, getMonthlyAttendanceReportExcel, getMonthlyCategoryDepartmentReport, getMonthlyExtraPersons, getPersonMonthlyAttendance, getTodayAttendanceWithoutOutTime, updateExtraPersonStatus, updateOutTime } from "../controllers/attendanceController.js";
 import { authenticateUser } from '../middleware/auth.js';
 import upload from '../multerConfig.js';
 
@@ -30,6 +30,7 @@ router.get("/today-pending", authenticateUser, getTodayAttendanceWithoutOutTime)
 router.get("/extra", authenticateUser, getMonthlyExtraPersons);
 router.get("/report", authenticateUser, getMonthlyAttendanceReport);
 router.get("/person", authenticateUser, getPersonMonthlyAttendance);
+router.get("/getReport", authenticateUser, getMonthlyCategoryDepartmentReport);
 router.get("/report/excel", authenticateUser, getMonthlyAttendanceReportExcel);
 // UPDATE extra status (approve / reject)
 router.put("/extra/:attendanceId", authenticateUser, updateExtraPersonStatus);
