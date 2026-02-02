@@ -26,16 +26,16 @@ const AttendanceSchema = new mongoose.Schema(
     // TECHNICAL
     "Estate Manager",
     "AFM",
-    "Fire & Safety Officier",
+    "Fire & Safety Officer",
     "Shift Engineer",
     "Accountant",
     "Help Desk",
     "Technical Supervisor",
-    "MST/ Electrician",
+    "MST / Electrician",
     "Machine Operator",
     "Plumber",
     "Mason",
-    "Carpanter",
+    "Carpenter",
     "Painter",
     "Fire Technician",
     "Lift Operator",
@@ -43,16 +43,16 @@ const AttendanceSchema = new mongoose.Schema(
     "Technical Assistant",
 
     // SOFT SERVICE
-    "HouseKeeping Sup.",
-    "Pentry Boy",
+    "Housekeeping Supervisor",
+    "Pantry Boy",
     "Housekeeping Boy",
-    "Head Gardner",
-    "Gardner",
+    "Head Gardener",
+    "Gardener",
 
     // SECURITY
-    "Security Supervisor",
-    "Lady Guard",
-    "Guards",
+    "Security Supervisor", 
+    "Lady Guard", 
+    "Guards"
   ],
   required: true,
 },

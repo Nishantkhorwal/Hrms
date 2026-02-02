@@ -118,6 +118,22 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                     </button>
                   </Link>
                 </li>
+                <li>
+                  <Link to="/createAsset">
+                    <button className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-100 hover:text-gray-900 hover:bg-gray-100">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Register Asset
+                    </button>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/issueAsset">
+                    <button className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-100 hover:text-gray-900 hover:bg-gray-100">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Asset Management
+                    </button>
+                  </Link>
+                </li>
 
                 <li>
                   <Link to="/settings">

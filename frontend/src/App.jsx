@@ -12,6 +12,8 @@ import PendingOutTime from './pages/PendingOutTime';
 import CreateExtraAttendance from './pages/CreateExtraAttendance';
 import ExtraPersonsAdmin from './pages/ExtraPersonsAdmin';
 import CreateSiteLimit from './pages/CreateSiteLimit';
+import RegisterAsset from './pages/RegisterAsset';
+import IssueAsset from './pages/IssueAsset';
 // import PaymentRecords from './pages/PaymentRecords';
 // import Settings from './pages/Settings';
 // import Entry from './pages/Entry';
@@ -45,6 +47,12 @@ function App() {
         <Route element={<PrivateRoute allowedRoles={["SuperAdmin"]} />}>
           <Route path="/register" element={<DashboardLayout>
             <RegisterUserPage />
+          </DashboardLayout>} />
+          <Route path="/createAsset" element={<DashboardLayout>
+            <RegisterAsset />
+          </DashboardLayout>} />
+          <Route path="/issueAsset" element={<DashboardLayout>
+            <IssueAsset />
           </DashboardLayout>} />
           <Route path="/createSiteLimit" element={<DashboardLayout>
             <CreateSiteLimit />

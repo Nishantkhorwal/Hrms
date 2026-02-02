@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 
 import authRoutes from './routes/authRoutes.js';
+import assetRoutes from './routes/assetRoutes.js';
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 
@@ -33,7 +34,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 200,
@@ -61,6 +62,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
 
 // Routes
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/assets", assetRoutes);
 app.use('/api/auth', authRoutes);
 
 

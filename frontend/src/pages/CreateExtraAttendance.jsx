@@ -257,16 +257,16 @@ const CreateExtraAttendance = () => {
     Technical: [
       "Estate Manager",
       "AFM",
-      "Fire & Safety Officier",
+      "Fire & Safety Officer",
       "Shift Engineer",
       "Accountant",
       "Help Desk",
       "Technical Supervisor",
-      "MST/ Electrician",
+      "MST / Electrician",
       "Machine Operator",
       "Plumber",
       "Mason",
-      "Carpanter",
+      "Carpenter",
       "Painter",
       "Fire Technician",
       "Lift Operator",
@@ -274,16 +274,14 @@ const CreateExtraAttendance = () => {
       "Technical Assistant",
     ],
     SoftService: [
-      "HouseKeeping Sup.",
-      "Pentry Boy",
+      "Housekeeping Supervisor",
+      "Pantry Boy",
       "Housekeeping Boy",
-      "Head Gardner",
-      "Gardner",
+      "Head Gardener",
+      "Gardener",
     ],
     Security: [
-      "Security Supervisor",
-      "Lady Guard",
-      "Guards",
+      "Security Supervisor", "Lady Guard", "Guards"
     ],
   };
 
