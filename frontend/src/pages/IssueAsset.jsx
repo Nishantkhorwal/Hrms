@@ -15,6 +15,13 @@ const IssueAsset = () => {
 
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [reportAsset, setReportAsset] = useState(null);
+  const [reportFilterOpen, setReportFilterOpen] = useState(false);
+  const [reportData, setReportData] = useState(null);
+
+  const [range, setRange] = useState("today");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
 
   const token = localStorage.getItem("token");
 
@@ -89,10 +96,47 @@ const IssueAsset = () => {
       console.error("Fetch Asset Report Error:", error);
     }
   };
+  const generateReport = async () => {
+  try {
+    const query = new URLSearchParams({
+      range,
+      ...(range === "custom" && { fromDate, toDate }),
+    });
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/assets/report?${query}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setReportData(data.report);
+      setReportFilterOpen(false);
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error("Report Error:", error);
+  }
+};
+
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Asset Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Asset Management</h1>
+
+        <button
+          onClick={() => setReportFilterOpen(true)}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+        >
+          Generate Report
+        </button>
+      </div>
+
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-4 items-center">
@@ -233,6 +277,196 @@ const IssueAsset = () => {
           onSuccess={fetchAssets}
         />
       )}
+      {reportFilterOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg w-[400px] p-6">
+      <h2 className="text-xl font-semibold mb-4">Generate Asset Report</h2>
+
+      <select
+        value={range}
+        onChange={(e) => {
+          setRange(e.target.value);
+          if (e.target.value !== "custom") {
+            setFromDate("");
+            setToDate("");
+          }
+        }}
+        className="w-full border px-3 py-2 rounded mb-4"
+      >
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+        <option value="custom">Custom</option>
+      </select>
+
+      {range === "custom" && (
+        <div className="space-y-3">
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+          />
+
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+          />
+        </div>
+      )}
+
+      <div className="flex justify-end gap-3 mt-5">
+        <button
+          onClick={() => setReportFilterOpen(false)}
+          className="px-4 py-2 border rounded"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={generateReport}
+          className="px-4 py-2 bg-purple-600 text-white rounded"
+        >
+          Generate
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+{reportData && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg w-[900px] max-h-[80vh] overflow-y-auto p-6">
+
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">Assets Report</h2>
+
+        <button
+          onClick={() => setReportData(null)}
+          className="text-red-500"
+        >
+          Close
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-5 gap-4 mb-6 text-center">
+  <div className="p-3 bg-gray-100 rounded">
+    Total<br />{reportData.summary.totalAssets}
+  </div>
+
+  <div className="p-3 bg-green-100 rounded">
+    Available<br />{reportData.summary.availableAssets}
+  </div>
+
+  <div className="p-3 bg-red-100 rounded">
+    Issued<br />{reportData.summary.issuedAssets}
+  </div>
+
+  <div className="p-3 bg-blue-100 rounded">
+    Issued In Period<br />{reportData.activitySummary.issuedInRange}
+  </div>
+
+  <div className="p-3 bg-purple-100 rounded">
+    Returned In Period<br />{reportData.activitySummary.returnedInRange}
+  </div>
+</div>
+
+
+      {/* Type Table */}
+      <h3 className="font-semibold mb-2">Assets by Type</h3>
+
+      <table className="w-full text-sm border mb-6">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-2 border text-left">Type</th>
+            <th className="p-2 border text-center">Total</th>
+            <th className="p-2 border text-center">Available</th>
+            <th className="p-2 border text-center">Issued</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {reportData.assetsByType.map((item, index) => (
+            <tr key={index}>
+              <td className="p-2 border">{item._id}</td>
+              <td className="p-2 border text-center">{item.total}</td>
+              <td className="p-2 border text-center">{item.available}</td>
+              <td className="p-2 border text-center">{item.issued}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+
+      {/* Department Table */}
+      <h3 className="font-semibold mb-2">Department Asset Usage</h3>
+
+<table className="w-full text-sm border mb-6">
+  <thead className="bg-gray-100">
+    <tr>
+      <th className="p-2 border text-left">Department</th>
+      <th className="p-2 border text-left">Asset Type</th>
+      <th className="p-2 border text-center">Issued</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {reportData.departmentAssetUsage.map((item, index) => (
+      <tr key={index}>
+        <td className="p-2 border">{item.department}</td>
+        <td className="p-2 border">{item.assetType}</td>
+        <td className="p-2 border text-center">{item.totalIssued}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
+<h3 className="font-semibold mb-2">Asset Activity</h3>
+
+<table className="w-full text-sm border">
+  <thead className="bg-gray-100">
+    <tr>
+      <th className="p-2 border text-left">Asset</th>
+      <th className="p-2 border text-left">Type</th>
+      <th className="p-2 border text-left">Employee</th>
+      <th className="p-2 border text-left">Department</th>
+      <th className="p-2 border text-center">Issued</th>
+      <th className="p-2 border text-center">Returned</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {reportData.activity.map((item, index) => (
+      <tr key={index}>
+        <td className="p-2 border">{item.assetName}</td>
+        <td className="p-2 border">{item.assetType}</td>
+        <td className="p-2 border">{item.employeeName || "-"}</td>
+        <td className="p-2 border">{item.department || "-"}</td>
+        <td className="p-2 border text-center">
+          {item.issuedDate
+            ? new Date(item.issuedDate).toLocaleDateString()
+            : "-"}
+        </td>
+        <td className="p-2 border text-center">
+          {item.returnedDate
+            ? new Date(item.returnedDate).toLocaleDateString()
+            : "-"}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
+    </div>
+  </div>
+)}
+
 
       {reportAsset && (
         <AssetReportModal

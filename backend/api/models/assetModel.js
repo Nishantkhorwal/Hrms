@@ -48,6 +48,7 @@ const assetSchema = new mongoose.Schema(
     },
     department: {
       type: String,
+      enum: ["IT", "HR", "Sales", "Marketing", "Finance", "Operations", "Admin"],
     },
     employeeMobile: {
       type: String,

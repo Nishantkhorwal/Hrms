@@ -333,3 +333,175 @@ export const getAssetReport = async (req, res) => {
   }
 };
 
+
+
+
+export const getAssetsDashboardReport = async (req, res) => {
+  try {
+    const { range, fromDate, toDate } = req.query;
+
+    let startDate = null;
+    let endDate = new Date();
+
+    /* -------- DATE FILTER LOGIC -------- */
+
+    if (range === "today") {
+      startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    if (range === "week") {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+    }
+
+    if (range === "month") {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 1);
+    }
+
+    if (range === "custom" && fromDate && toDate) {
+      startDate = new Date(fromDate);
+      endDate = new Date(toDate);
+    }
+
+    /* -------- BASIC COUNTS -------- */
+
+    const totalAssets = await Asset.countDocuments();
+
+    const availableAssets = await Asset.countDocuments({
+      assetStatus: "Available",
+    });
+
+    const issuedAssets = await Asset.countDocuments({
+      assetStatus: "Issued",
+    });
+
+    /* -------- ISSUED / RETURNED ACTIVITY -------- */
+
+    let issuedQuery = {};
+    let returnedQuery = {};
+
+    if (startDate) {
+      issuedQuery.issuedDate = { $gte: startDate, $lte: endDate };
+
+      returnedQuery["history.returnedDate"] = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    const issuedInRange = await Asset.countDocuments(issuedQuery);
+
+    const returnedInRange = await Asset.aggregate([
+      { $unwind: "$history" },
+      {
+        $match: {
+          "history.returnedDate": {
+            $gte: startDate,
+            $lte: endDate,
+          },
+        },
+      },
+      { $count: "totalReturned" },
+    ]);
+
+    const returnedCount =
+      returnedInRange.length > 0 ? returnedInRange[0].totalReturned : 0;
+
+    /* -------- ASSET TYPE ANALYTICS -------- */
+
+    const assetsByType = await Asset.aggregate([
+      {
+        $group: {
+          _id: "$assetType",
+          total: { $sum: 1 },
+          available: {
+            $sum: {
+              $cond: [{ $eq: ["$assetStatus", "Available"] }, 1, 0],
+            },
+          },
+          issued: {
+            $sum: {
+              $cond: [{ $eq: ["$assetStatus", "Issued"] }, 1, 0],
+            },
+          },
+        },
+      },
+      { $sort: { total: -1 } },
+    ]);
+
+    /* -------- DEPARTMENT + ASSET TYPE -------- */
+
+    const departmentAssetUsage = await Asset.aggregate([
+      {
+        $match: {
+          assetStatus: "Issued",
+          department: { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            department: "$department",
+            assetType: "$assetType",
+          },
+          totalIssued: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          department: "$_id.department",
+          assetType: "$_id.assetType",
+          totalIssued: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { department: 1 } },
+    ]);
+
+    /* -------- ACTIVITY TABLE (ISSUED IN RANGE) -------- */
+
+    let activity = [];
+
+    if (startDate) {
+      activity = await Asset.find({
+        issuedDate: { $gte: startDate, $lte: endDate },
+      }).select(
+        "assetName assetType employeeName department issuedDate returnedDate"
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      report: {
+        summary: {
+          totalAssets,
+          availableAssets,
+          issuedAssets,
+        },
+
+        activitySummary: {
+          issuedInRange,
+          returnedInRange: returnedCount,
+        },
+
+        assetsByType,
+
+        departmentAssetUsage,
+
+        activity,
+      },
+    });
+  } catch (error) {
+    console.error("Assets Report Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Error generating asset report",
+    });
+  }
+};
+
+
+
