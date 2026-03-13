@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import IssueAssetModal from "../components/IssueAssetModal";
 import AssetReportModal from "../components/AssetReportModal";
+import * as XLSX from "xlsx-js-style";
+
+import { saveAs } from "file-saver";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -122,6 +125,202 @@ const IssueAsset = () => {
     console.error("Report Error:", error);
   }
 };
+
+const exportDashboardReport = () => {
+
+  const data = [
+    ["ASSET MANAGEMENT REPORT", "", "", "", "", ""],
+    [`Generated On: ${new Date().toLocaleDateString()}`, "", "", "", "", ""],
+    [],
+
+    ["SUMMARY", "", "", "", "", ""],
+    ["Metric", "Value", "", "", "", ""],
+
+    ["Total Assets", reportData.summary.totalAssets],
+    ["Available", reportData.summary.availableAssets],
+    ["Issued", reportData.summary.issuedAssets],
+    ["Issued In Period", reportData.activitySummary.issuedInRange],
+    ["Returned In Period", reportData.activitySummary.returnedInRange],
+
+    [],
+
+    ["ASSETS BY TYPE", "", "", "", "", ""],
+    ["Type", "Total", "Available", "Issued", "", ""],
+
+    ...reportData.assetsByType.map(item => [
+      item._id,
+      item.total,
+      item.available,
+      item.issued
+    ]),
+
+    [],
+
+    ["DEPARTMENT ASSET USAGE", "", "", "", "", ""],
+    ["Department", "Asset Type", "Issued", "", "", ""],
+
+    ...reportData.departmentAssetUsage.map(item => [
+      item.department,
+      item.assetType,
+      item.totalIssued
+    ]),
+
+    [],
+
+    ["ASSET ACTIVITY", "", "", "", "", ""],
+    ["Asset", "Type", "Employee", "Department", "Issued Date", "Returned Date"],
+
+    ...reportData.activity.map(item => [
+      item.assetName,
+      item.assetType,
+      item.employeeName || "-",
+      item.department || "-",
+      item.issuedDate ? new Date(item.issuedDate).toLocaleDateString() : "-",
+      item.returnedDate ? new Date(item.returnedDate).toLocaleDateString() : "-"
+    ]),
+
+    [],
+
+    ["FULL ASSET INVENTORY", "", "", "", "", ""],
+    ["Asset Name", "Type", "Serial Number", "Status", "Employee", "Department"],
+
+    ...reportData.allAssets.map(asset => [
+      asset.assetName,
+      asset.assetType,
+      asset.serialNumber,
+      asset.assetStatus,
+      asset.employeeName || "-",
+      asset.department || "-"
+    ])
+  ];
+
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+
+  ws["!cols"] = [
+    { wch: 25 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 }
+  ];
+
+
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
+
+    { s: { r: 11, c: 0 }, e: { r: 11, c: 5 } },
+
+    { s: { r: 16 + reportData.assetsByType.length, c: 0 }, e: { r: 16 + reportData.assetsByType.length, c: 5 } },
+
+    { s: { r: 21 + reportData.assetsByType.length + reportData.departmentAssetUsage.length, c: 0 }, e: { r: 21 + reportData.assetsByType.length + reportData.departmentAssetUsage.length, c: 5 } },
+
+    { s: { r: 26 + reportData.assetsByType.length + reportData.departmentAssetUsage.length + reportData.activity.length, c: 0 }, e: { r: 26 + reportData.assetsByType.length + reportData.departmentAssetUsage.length + reportData.activity.length, c: 5 } },
+  ];
+
+
+  const border = {
+    top: { style: "thin" },
+    bottom: { style: "thin" },
+    left: { style: "thin" },
+    right: { style: "thin" },
+  };
+
+  const center = { horizontal: "center", vertical: "center", wrapText: true };
+  const left = { horizontal: "left", vertical: "center", wrapText: true };
+
+
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+
+      const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+      const cell = ws[cellRef];
+
+      if (!cell) continue;
+
+      cell.s = {
+        border,
+        alignment: center,
+        font: { name: "Calibri", sz: 11 }
+      };
+
+      /* TITLE */
+
+      if (R === 0) {
+        cell.s = {
+          font: { bold: true, sz: 18 },
+          alignment: center,
+          fill: { fgColor: { rgb: "BDD7EE" } },
+          border
+        };
+      }
+
+      /* SECTION HEADERS */
+
+      if (
+        cell.v === "SUMMARY" ||
+        cell.v === "ASSETS BY TYPE" ||
+        cell.v === "DEPARTMENT ASSET USAGE" ||
+        cell.v === "ASSET ACTIVITY" ||
+        cell.v === "FULL ASSET INVENTORY"
+      ) {
+        cell.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "4472C4" } },
+          alignment: center,
+          border
+        };
+      }
+
+      /* TABLE HEADERS */
+
+      if (
+        cell.v === "Metric" ||
+        cell.v === "Type" ||
+        cell.v === "Department" ||
+        cell.v === "Asset" ||
+        cell.v === "Asset Name"
+      ) {
+        cell.s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: "D9E1F2" } },
+          alignment: center,
+          border
+        };
+      }
+
+      if (C === 0) {
+        cell.s.alignment = left;
+      }
+    }
+  }
+
+
+  const wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, ws, "Assets Report");
+
+  const excelBuffer = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array",
+    cellStyles: true
+  });
+
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  saveAs(blob, "assets-dashboard-report.xlsx");
+};
+
+
 
 
   return (
@@ -342,7 +541,16 @@ const IssueAsset = () => {
     <div className="bg-white rounded-lg w-[900px] max-h-[80vh] overflow-y-auto p-6">
 
       <div className="flex justify-between mb-4">
+        <div className="justify-between items-center gap-5 flex flex-row">
         <h2 className="text-xl font-bold">Assets Report</h2>
+        <button
+          onClick={exportDashboardReport}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+        Download Excel
+        </button>
+
+        </div>
 
         <button
           onClick={() => setReportData(null)}

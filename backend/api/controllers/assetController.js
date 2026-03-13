@@ -472,6 +472,11 @@ export const getAssetsDashboardReport = async (req, res) => {
       );
     }
 
+    const allAssets = await Asset.find().select(
+      "assetName assetType serialNumber assetStatus employeeName department issuedDate"
+    );
+
+
     res.status(200).json({
       success: true,
       report: {
@@ -491,6 +496,7 @@ export const getAssetsDashboardReport = async (req, res) => {
         departmentAssetUsage,
 
         activity,
+        allAssets
       },
     });
   } catch (error) {
