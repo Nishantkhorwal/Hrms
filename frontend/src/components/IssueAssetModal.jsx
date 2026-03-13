@@ -55,14 +55,18 @@ const IssueAssetModal = ({ asset, onClose, onSuccess }) => {
     }
   };
   const DEPARTMENTS = [
-  "IT",
-  "HR",
-  "Sales",
-  "Marketing",
-  "Finance",
-  "Operations",
-  "Admin",
-];
+    "IT",
+    "HR",
+    "Sales",
+    "Marketing",
+    "Finance",
+    "Operations",
+    "Admin",
+    "CRM", 
+    "Billing",
+    "Civil",
+    "Facility"
+  ];
 
 
   return (
