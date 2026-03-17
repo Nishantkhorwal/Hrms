@@ -74,7 +74,8 @@ const IssueAssetModal = ({ asset, onClose, onSuccess }) => {
     "Account",
     "Legal",
     "Cs",
-    "Land & Liasoning"
+    "Land & Liasoning",
+    "MEP"
   ];
 
 
