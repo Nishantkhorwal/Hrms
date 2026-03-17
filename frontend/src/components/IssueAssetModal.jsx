@@ -65,7 +65,15 @@ const IssueAssetModal = ({ asset, onClose, onSuccess }) => {
     "CRM", 
     "Billing",
     "Civil",
-    "Facility"
+    "Facility",
+    "Quality",
+    "Architect",
+    "Planning",
+    "EHS",
+    "Store",
+    "Account",
+    "Legal",
+    "Cs"
   ];
 
 
